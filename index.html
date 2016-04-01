@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=divice-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no,minimal-ui">
+    <title>左滑删除 Flip</title>
+    <style type="text/x-less">
+    *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+
+        &:before, &:after{
+            box-sizing:border-box;
+        }
+    }
+
+    h3{
+        padding:20px;
+        font-size:18px;
+        font-family: microsoft yahei;
+        background:#ddd;
+    }
+
+    li{
+        position:relative;
+        border-bottom:1px solid #ddd;
+        overflow:hidden;
+
+        .li-inner{
+            position: relative;
+            z-index: 2;
+            background:#fff;
+            font-size:16px;
+            padding:16px;
+            word-break: break-word;
+            word-wrap:break-word;
+            box-shadow: 1px 0 10px 0 rgba(0,0,0,.3);
+        }
+
+        .delete{
+            display:flex;
+            height:100%;
+            width: 80px;
+            background: red;
+            position: absolute;
+            right: 0;
+            top: 0;
+            z-index: 1;
+            text-align: center;
+
+            &:before{
+                content:"删除";
+                color: #fff;
+                font-style: initial;
+                display: block;
+                flex: 1;
+                align-self: center;
+            }
+        }
+    }
+
+    h3 + ul > li:first-child{
+        border-top:1px solid #ddd;
+    }
+    </style>
+</head>
+<body>
+    <div id="list-flip">
+        <h3>左滑删除效果</h3>
+        <ul>
+            <li>
+                <div class="li-inner" style="transform: translate(-100px,0);">测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表</div>
+                <i class="delete"></i>
+            </li>
+            <li>
+                <div class="li-inner">测试列表</div>
+                <i class="delete"></i>
+            </li>
+            <li>
+                <div class="li-inner">测试列表</div>
+                <i class="delete"></i>
+            </li>
+            <li>
+                <div class="li-inner">测试列表</div>
+                <i class="delete"></i>
+            </li>
+            <li>
+                <div class="li-inner">测试列表</div>
+                <i class="delete"></i>
+            </li>
+            <li>
+                <div class="li-inner">测试列表</div>
+                <i class="delete"></i>
+            </li>
+            <li>
+                <div class="li-inner">测试列表</div>
+                <i class="delete"></i>
+            </li>
+            <li>
+                <div class="li-inner">测试列表</div>
+                <i class="delete"></i>
+            </li>
+            <li>
+                <div class="li-inner">测试列表</div>
+                <i class="delete"></i>
+            </li>
+            <li>
+                <div class="li-inner">测试列表</div>
+                <i class="delete"></i>
+            </li>
+        </ul>
+    </div>
+    <script src="third/require.js" data-main="js/main.js"></script>
+</body>
+</html>
