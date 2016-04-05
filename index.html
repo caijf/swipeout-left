@@ -63,14 +63,18 @@
     h3 + ul > li:first-child{
         border-top:1px solid #ddd;
     }
+
+    .transition{
+        transition:transform 0.3s ease-out 0s;
+    }
     </style>
 </head>
 <body>
     <div id="list-flip">
-        <h3>左滑删除效果</h3>
+        <h3>左滑删除</h3>
         <ul>
             <li>
-                <div class="li-inner" style="transform: translate(-100px,0);">测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表</div>
+                <div class="li-inner">测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表</div>
                 <i class="delete"></i>
             </li>
             <li>
@@ -111,6 +115,6 @@
             </li>
         </ul>
     </div>
-    <script src="third/require.js" data-main="js/main.js"></script>
+    <script src="third/require.js" data-main="/static/js/main.js"></script>
 </body>
 </html>

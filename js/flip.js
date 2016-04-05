@@ -1,4 +1,4 @@
-define([], function(){
+define(['zepto'], function($){
 
     /**
      * 标准化位置信息
@@ -13,7 +13,7 @@ define([], function(){
         if(e.changedTouches && e.changedTouches.length){
             touches = e.changedTouches[0];
         }
-        return _.extend({
+        return $.extend({
             origin: {
                 x: touches.pageX,
                 y: touches.pageY
@@ -37,14 +37,10 @@ define([], function(){
          };
      }
 
-     // 缓存dom
-     var $dom = $(document);
-
-
     function Flip(options){
 
         //去除new字符串
-        if (this instanceof flip) return new flip(options);
+        if (this instanceof Flip) return new Flip(options);
 
         var self = this;
 
@@ -52,7 +48,10 @@ define([], function(){
         var opt = $.extend({
             wrapper: 'body',
             itemSelector: 'li',
+            transClass: 'li-inner',
+            deleteClass: 'delete',
             maxLimit: -80,
+            overstepLimit: -40,
             preventClick: true,
             animateClass: 'transition',
             animateTime: 200,
@@ -62,7 +61,7 @@ define([], function(){
         // 偏移界限值
         opt.toggleLimit = opt.toggleLimit || opt.maxLimit / 2;
 
-        // 局部变量
+        // 内部变量
         var currentTarget = null, // 当前操作的dom对象
             origin = {
                 x: 0, // 开始x轴坐标
@@ -71,65 +70,160 @@ define([], function(){
             dir = '', // 判断touch方向，v为垂直，h为水平
             startTime; // 开始触发时间
 
+        // 缓存dom
+        var $dom = $(document),
+            $wrapper = $(opt.wrapper);
+
+        // 标识正在进行隐藏过渡动画
+        var isFlipAnimate = false;
+
         // 偏移量
-        function transform(x){
-            currentTarget.css({
+        function transform($el, x){
+            $el.css({
                 '-webkit-transform': 'translateX('+ x +'px)',
                 'transform': 'translateX('+ x +'px)'
             });
         }
 
         // 偏移动画
-        function slide(x){
-            currentTarget.addClass(opt.animateClass).attr('data-translateX', x);
-            transform(x);
+        function slide($el, x, callback){
+
+            $el.addClass(opt.animateClass).attr('data-translateX', x);
+            transform($el, x);
             setTimeout(function(){
-                currentTarget && currentTarget.removeClass(opt.animateClass);
+                $el.removeClass(opt.animateClass);
+                callback && (typeof callback === 'function') && callback();
             }, opt.animateTime);
         }
 
         function start(e){
-            if(opt.disabledHandle && disabledHandle()){
+            if(opt.disabledHandle && typeof opt.disabledHandle === 'function' && opt.disabledHandle()){
                 return;
             }
 
-            var e = getStandEvent(e),
-                origin.x = e.origin.x,
-                origin.y = e.origin.y,
-                startTime = Date.now();
+            var evt = getStandEvent(e);
 
-            var target = $(e.target).parents(opt.itemSelector);
+            origin.x = evt.origin.x;
+            origin.y = evt.origin.y;
+            startTime = Date.now();
+
+            var $target = $(e.target).parents(opt.itemSelector);
 
             // 初始化
-            sdOpts.dir = '';
+            dir = '';
 
             // 存在删除状态
-            if(self.isHasDelete){
-                // 如果触摸的是删除，保留当前状态
-                if(e.target.textContent.toString() !== '删除'){
-                    self.sdHideDelete();
+            if(self.isFlip){
+                // 如果触摸的不是删除，移除当前状态
+                if(!$(e.target).hasClass(opt.deleteClass)){
+                    $target.on('click',function click(e){
+                        e.stopPropagation();
+                        e.preventDefault();
+                        $target.off('click', click);
+                    });
+
+                    // 阻止默认行为（滚动）
+                    e.preventDefault();
+
+                    self.hideSlide();
                     return;
                 }else{
-                    sdOpts.currentTarget.removeClass('transition');
+                    $target.on('click',function click(e){
+                        e.stopPropagation();
+                        e.preventDefault();
+                        $target.off('click', click);
+                    });
                 }
-            }else{
-                // 不存在删除状态则重新获取currentTarget
-                sdOpts.currentTarget = $target.parents("dd").length > 0 ? $target.parents("dd") : null;
-                sdOpts.currentTarget && sdOpts.currentTarget.removeClass('transition');
             }
+
+            currentTarget = $target;
+
+            $dom.on(EVENT.MOVE, move);
+            $dom.on(EVENT.END, end);
 
         }
 
         function move(e){
-            if(opt.disabledHandle && disabledHandle()){
-                return;
+            if (!currentTarget) return;
+
+            var evt = getStandEvent(e),
+                tranX,
+                moveX = evt.origin.x - origin.x,
+                moveY = evt.origin.y - origin.y,
+                absDistX = Math.abs(moveX),
+                absDistY = Math.abs(moveY);
+
+            // 取点判断方向
+            if(!dir){
+                if(absDistX >= absDistY){
+                    dir = 'h';
+                }else{
+                    dir = 'v';
+                }
+            }
+
+            // 水平滑动处理
+            if(dir === 'h'){
+
+                // 跟随移动
+                tranX = parseInt(currentTarget.find('.' + opt.transClass).attr('data-translateX'), 10) || 0;
+                tranX += moveX;
+
+                // 边界值限定
+                if(tranX < (opt.maxLimit + opt.overstepLimit)){
+                    tranX = opt.maxLimit + opt.overstepLimit;
+                }else if(tranX > 0){
+                    tranX = 0;
+                }
+
+                transform(currentTarget.find('.' + opt.transClass), tranX);
+
+                // 阻止默认行为（滚动）
+                e.preventDefault();
+            }else{
+                $dom.off(EVENT.MOVE, move);
+                $dom.off(EVENT.END, end);
+
+                end(e);
             }
         }
 
         function end(e){
-            if(opt.disabledHandle && disabledHandle()){
-                return;
+            if (!currentTarget) return;
+
+            var evt = getStandEvent(e),
+                moveX = evt.origin.x - origin.x,
+                tranX = 0,
+                endTime = Date.now();
+
+            tranX = parseInt(currentTarget.find('.' + opt.transClass).attr('data-translateX'), 10) || 0;
+            tranX += moveX;
+
+            self.isFlip = true;
+
+            // 滑动
+            if(tranX < opt.toggleLimit){
+                self.showSlide();
+            }else{
+                self.hideSlide();
             }
+
+            //鼠标按下事件（处理PC端中）
+            if(opt.preventClick && EVENT.START === 'mousedown' && startTime && endTime - startTime > 300) {
+                currentTarget.on('click',function click(e){
+                    e.stopPropagation();
+                    e.preventDefault();
+                    currentTarget.off('click', click);
+                });
+                startTime = null;
+            }
+
+            // 阻止默认行为
+            e.preventDefault();
+
+            $(document).off(EVENT.MOVE, move);
+            $(document).off(EVENT.END, end);
+
         }
 
         // 初始化，事件绑定
@@ -137,16 +231,30 @@ define([], function(){
             $(opt.wrapper).on(EVENT.START, start);
         }
 
-        // 存在滑出状态
-        this.hasSlide = false;
+        // 存在滑出状态，只要元素移出原本的位置都为 true
+        this.isFlip = false;
 
         // 隐藏滑出dom
         this.hideSlide = function(){
-            slide(0);
-            setTimeout(function(){
+
+            // 标识正在进行隐藏过渡动画
+            if(isFlipAnimate) return;
+
+            isFlipAnimate = true;
+
+            slide(currentTarget.find('.' + opt.transClass), 0, function(){
                 currentTarget = null;
-                self.hasSlide = false;
-            }, opt.animateTime);
+                self.isFlip = false;
+                isFlipAnimate = false;
+            });
+        }
+
+        this.showSlide = function(){
+
+            // 标识正在进行隐藏过渡动画
+            if(isFlipAnimate) return;
+
+            slide(currentTarget.find('.' + opt.transClass), opt.maxLimit);
         }
 
         // 销毁
@@ -156,203 +264,14 @@ define([], function(){
 
         // 如果处于滑出状态，则重置
         this.reset = function(){
-            if(self.hasSlide){
+            if(self.isFlip){
                 self.hideSlide();
             }
         }
 
         this.init();
-
     }
 
-    return Filp;
+    return Flip;
 
 });
-
-// 左滑删除：touchstart
-sdStart: function(e, self){
-
-    // pad不做任何操作
-    if(cUtilCommon.isIpad || document.body.clientWidth > 768){
-        return;
-    }
-
-    var self = self,
-        touch = e.touches[0],
-        $target = $(e.target),
-        sdOpts = self.sdOpts;
-
-    // 编辑状态
-    if(modify.getModifyStatus()){
-        return;
-    }
-
-    // 初始化
-    sdOpts.startX = touch.pageX;
-    sdOpts.startY = touch.pageY;
-    sdOpts.moveX = 0;
-    sdOpts.moveY = 0;
-    sdOpts.dir = '';
-
-    // 存在删除状态
-    if(self.isHasDelete){
-        // 如果触摸的是删除，保留当前状态
-        if(e.target.textContent.toString() !== '删除'){
-            self.sdHideDelete();
-            return;
-        }else{
-            sdOpts.currentTarget.removeClass('transition');
-        }
-    }else{
-        // 不存在删除状态则重新获取currentTarget
-        sdOpts.currentTarget = $target.parents("dd").length > 0 ? $target.parents("dd") : null;
-        sdOpts.currentTarget && sdOpts.currentTarget.removeClass('transition');
-    }
-},
-
-// 左滑删除：touchmove
-sdMove: function(e, self){
-    // pad不做任何操作
-    if(cUtilCommon.isIpad || document.body.clientWidth > 768){
-        return;
-    }
-
-    var self = self,
-        touch = e.touches[0],
-        sdOpts = self.sdOpts;
-
-    // 编辑状态 或 没有currentTarget的情况
-    if(modify.getModifyStatus() || !sdOpts.currentTarget){
-        return;
-    }
-
-    // 存在删除状态，并且触点是删除区域，阻止滚动
-    if(self.isHasDelete){
-        if(e.target.textContent.toString() === '删除'){
-            // 阻止冒泡，bug：会触发click事件
-            e.stopPropagation();
-            // e.preventDefault(); // 开启这个触点是删除区域，不可滚动
-        }
-        return;
-    }
-
-    sdOpts.moveX = touch.pageX - sdOpts.startX,
-    sdOpts.moveY = touch.pageY - sdOpts.startY;
-
-    var absDistX = Math.abs(sdOpts.moveX),
-        absDistY = Math.abs(sdOpts.moveY);
-
-    // 取点判断方向
-    if(!sdOpts.dir){
-        if(absDistX > absDistY){
-            sdOpts.dir = 'h';
-        }else{
-            sdOpts.dir = 'v';
-        }
-    }
-
-    // 水平滑动处理
-    if(sdOpts.dir === 'h'){
-
-        // 跟随移动
-        var translateX = parseInt(sdOpts.currentTarget.attr('data-translateX'), 10) || 0;
-        translateX += sdOpts.moveX;
-
-        // 边界值限定
-        if(translateX < -sdOpts.deleteWidth){
-            translateX = -sdOpts.deleteWidth;
-        }else if(translateX > 0){
-            translateX = 0;
-        }
-
-        self.sdTransform(translateX);
-
-        // 阻止冒泡，产生bug：会触发click事件
-        e.stopPropagation();
-
-        // 阻止默认行为（滚动）
-        e.preventDefault();
-    }
-},
-
-// 左滑删除：touchend
-sdEnd: function(e, self){
-    // pad不做任何操作
-    if(cUtilCommon.isIpad || document.body.clientWidth > 768){
-        return;
-    }
-
-    var self = this,
-        touch = e.touches[0],
-        sdOpts = self.sdOpts;
-
-    // 编辑状态 或 没有currentTarget的情况
-    if(modify.getModifyStatus() || !sdOpts.currentTarget){
-        return;
-    }
-
-    // 滑动方向
-    if(sdOpts.dir !== 'h'){
-        return;
-    }
-
-    var translateX = 0;
-
-    // 滑动判定
-    if(sdOpts.moveX < -sdOpts.deleteWidth/2){
-        self.isHasDelete = true;
-        translateX = -sdOpts.deleteWidth;
-    }else{
-        self.isHasDelete = false;
-    }
-
-    self.sdSlide(translateX);
-
-    e.stopPropagation();
-    e.preventDefault();
-},
-
-// 左滑删除：偏移量
-sdTransform: function(x){
-    this.sdOpts.currentTarget.css({
-        '-webkit-transform': 'translateX('+ x +'px)',
-        'transform': 'translateX('+ x +'px)'
-    })
-},
-
-// 左滑删除：偏移动画
-sdSlide: function(x){
-
-    var self = this
-        sdOpts = self.sdOpts;
-
-    sdOpts.currentTarget.addClass('transition').attr('data-translateX', x);
-    sdOpts.currentTarget.css({
-        '-webkit-transform': 'translateX('+ x +'px)',
-        'transform': 'translateX('+ x +'px)'
-    });
-    setTimeout(function(){
-        sdOpts.currentTarget && sdOpts.currentTarget.removeClass('transition');
-    }, 150);
-},
-
-// 左滑删除：隐藏删除状态
-sdHideDelete: function(){
-    var self = this,
-        sdOpts = self.sdOpts;
-
-    self.sdSlide(0);
-
-    setTimeout(function(){
-        sdOpts.currentTarget = null;
-        self.isHasDelete = false;
-    }, 200);
-},
-
-// 左滑删除：重置
-sdReset: function(){
-    var self = this;
-    if(self.isHasDelete){
-        self.sdHideDelete();
-    }
-},

@@ -1,7 +1,12 @@
 require.config({
-    baseUrl: '../',
+    baseUrl: '../static',
+    shim:{
+        zepto: {
+            exports: '$'
+        }
+    },
     paths: {
-        zepto: 'third/zepto'
+        zepto: 'third/zepto',
         flip: 'js/flip'
     }
 });
@@ -17,8 +22,12 @@ require(['zepto', 'flip'], function($, Flip){
         toggleLimit: -40,
         animateTime: 300,
         disabledHandle: function(){
-            return window.screen.width > 768;
+            return $(document).width() > 768;
         }
+    });
+
+    $('#list-flip').on('click', 'li', function(){
+        console.log('click li');
     })
 
 });
