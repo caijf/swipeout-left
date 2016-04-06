@@ -129,7 +129,6 @@ define(['zepto'], function($){
             maxLimit: -80,
             overstepLimit: -40,
             preventClick: true,
-            // animateClass: 'transition',
             animateTime: 200,
             disabledHandle: null // 禁用条件函数
         }, options);
@@ -172,7 +171,6 @@ define(['zepto'], function($){
                 currentTarget = null;
                 isFlip = false;
                 isFlipAnimate = false;
-                console.log('callback isFlip: ' + isFlip);
             });
         }
 
@@ -284,6 +282,7 @@ define(['zepto'], function($){
 
             // 滑动
             if(tranX < opt.toggleLimit){
+                // 标识存在滑出状态
                 isFlip = true;
                 showSlide();
             }else{
@@ -318,7 +317,7 @@ define(['zepto'], function($){
 
         // 当前是否有滑出状态
         this.hasFlip = function(){
-            return (currentTarget && currentTarget.length) ? true : false;
+            return (currentTarget && currentTarget.length > 0) ? true : false;
         }
     }
 
