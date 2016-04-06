@@ -15,7 +15,7 @@ require.config({
 require(['zepto', 'flip'], function($, Flip){
 
     // 调用左滑删除
-    Flip({
+    window.lip = new Flip({
         wrapper: '#list-flip',
         itemSelector: 'li',
         maxLimit: -80,
