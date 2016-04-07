@@ -14,6 +14,7 @@
             box-sizing:border-box;
         }
     }
+    li{ list-style: none; }
 
     h3{
         padding:20px;
@@ -35,27 +36,47 @@
             padding:16px;
             word-break: break-word;
             word-wrap:break-word;
-            box-shadow: 1px 0 10px 0 rgba(0,0,0,.3);
+            box-shadow: 1px 0 10px 0 rgba(0,0,0,.2);
         }
-
-        .delete{
-            display:flex;
-            height:100%;
-            width: 80px;
-            background: red;
+        .li-action{
             position: absolute;
             right: 0;
             top: 0;
+            display: flex;
+            height: 100%;
+        }
+
+        .delete, .attention{
+            display:flex;
             z-index: 1;
             text-align: center;
 
             &:before{
-                content:"删除";
                 color: #fff;
                 font-style: initial;
                 display: block;
                 flex: 1;
                 align-self: center;
+            }
+        }
+
+        .delete{
+            height:100%;
+            width: 80px;
+            background: red;
+
+            &:before{
+                content:"删除";
+            }
+        }
+
+        .attention{
+            height:100%;
+            width: 120px;
+            background: #ccc;
+
+            &:before{
+                content:"关注";
             }
         }
     }
@@ -70,48 +91,132 @@
     </style>
 </head>
 <body>
-    <div id="list-flip">
-        <h3>左滑删除</h3>
+    <h3>左滑删除-1</h3>
+    <div id="test-flip1">
         <ul>
             <li>
-                <div class="li-inner">测试列表测试列表测试列表测试列表测试列表测试列表测试列表测试列表</div>
-                <i class="delete"></i>
+                <div class="li-inner">测试列表1111111111111111111111111111111111111111测试列表1111111111111111111111111111111111111111</div>
+                <div class="li-action">
+                    <span class="attention"></span>
+                    <i class="delete"></i>
+                </div>
             </li>
             <li>
                 <div class="li-inner">测试列表</div>
-                <i class="delete"></i>
+                <div class="li-action">
+                    <span class="attention"></span>
+                    <i class="delete"></i>
+                </div>
             </li>
             <li>
                 <div class="li-inner">测试列表</div>
-                <i class="delete"></i>
+                <div class="li-action">
+                    <span class="attention"></span>
+                    <i class="delete"></i>
+                </div>
+            </li>
+        </ul>
+    </div>
+    <h3>左滑删除-2</h3>
+    <div id="test-flip2">
+        <ul>
+            <li>
+                <div class="li-inner">测试列表</div>
+                <div class="li-action">
+                    <i class="delete"></i>
+                </div>
             </li>
             <li>
                 <div class="li-inner">测试列表</div>
-                <i class="delete"></i>
+                <div class="li-action">
+                    <i class="delete"></i>
+                </div>
             </li>
             <li>
                 <div class="li-inner">测试列表</div>
-                <i class="delete"></i>
+                <div class="li-action">
+                    <i class="delete"></i>
+                </div>
             </li>
             <li>
                 <div class="li-inner">测试列表</div>
-                <i class="delete"></i>
+                <div class="li-action">
+                    <i class="delete"></i>
+                </div>
             </li>
             <li>
                 <div class="li-inner">测试列表</div>
-                <i class="delete"></i>
+                <div class="li-action">
+                    <i class="delete"></i>
+                </div>
             </li>
             <li>
                 <div class="li-inner">测试列表</div>
-                <i class="delete"></i>
+                <div class="li-action">
+                    <i class="delete"></i>
+                </div>
+            </li>
+        </ul>
+    </div>
+    <h3>左滑删除-3</h3>
+    <div id="test-flip3">
+        <ul>
+            <li>
+                <div class="li-inner">测试列表1111111111111111111111111111111111111111测试列表1111111111111111111111111111111111111111</div>
+                <div class="li-action">
+                    <span class="attention"></span>
+                    <i class="delete"></i>
+                </div>
             </li>
             <li>
                 <div class="li-inner">测试列表</div>
-                <i class="delete"></i>
+                <div class="li-action">
+                    <span class="attention"></span>
+                    <i class="delete"></i>
+                </div>
             </li>
             <li>
                 <div class="li-inner">测试列表</div>
-                <i class="delete"></i>
+                <div class="li-action">
+                    <span class="attention"></span>
+                    <i class="delete"></i>
+                </div>
+            </li>
+            <li>
+                <div class="li-inner">测试列表</div>
+                <div class="li-action">
+                    <i class="delete"></i>
+                </div>
+            </li>
+            <li>
+                <div class="li-inner">测试列表</div>
+                <div class="li-action">
+                    <i class="delete"></i>
+                </div>
+            </li>
+            <li>
+                <div class="li-inner">测试列表</div>
+                <div class="li-action">
+                    <i class="delete"></i>
+                </div>
+            </li>
+            <li>
+                <div class="li-inner">测试列表</div>
+                <div class="li-action">
+                    <i class="delete"></i>
+                </div>
+            </li>
+            <li>
+                <div class="li-inner">测试列表</div>
+                <div class="li-action">
+                    <i class="delete"></i>
+                </div>
+            </li>
+            <li>
+                <div class="li-inner">测试列表</div>
+                <div class="li-action">
+                    <i class="delete"></i>
+                </div>
             </li>
         </ul>
     </div>
