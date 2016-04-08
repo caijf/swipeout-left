@@ -54,19 +54,17 @@
     function fxPrefix(){
         var body = document.body || document.documentElement,
             style=body.style,
-            vendor = ['', 'Moz', 'Webkit', 'Khtml', 'O', 'ms'],
+            vendor = ['Moz', 'Webkit', 'Khtml', 'O', 'ms'],
             i = 0,
-            len = vendor.length,
-            result = '';
+            len = vendor.length;
 
         while(i < len){
             if(typeof style[vendor[i] + 'transition'] === 'string'){
-                result = vendor[i];
-                break;
+                return vendor[i];
             }
             i++;
         }
-        return result;
+        return '';
     }
 
     /**
@@ -86,12 +84,11 @@
 
         for(var name in transEndEventNames){
             if(typeof style[name] === "string"){
-                result = transEndEventNames[name];
-                break;
+                return transEndEventNames[name];
             }
         }
 
-        return result;
+        return 'transitionend';
     };
 
      /**
