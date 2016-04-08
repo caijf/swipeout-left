@@ -272,10 +272,16 @@
                         'data-translatex': offsetObj.x,
                         'data-movex': offsetObj.x
                     })
-                    .one(transitionEnd, function() {
-                        $el.css(fxTransition, '');
-                        callback && (typeof callback === 'function') && callback();
-                    });
+                    // 测试部分安卓下的浏览器（如qq浏览器）不支持 webkitTransitionEnd 事件
+                    // .one(transitionEnd, function() {
+                    //     $el.css(fxTransition, '');
+                    //     callback && (typeof callback === 'function') && callback();
+                    // });
+
+                    setTimeout(function(){
+                            $el.css(fxTransition, '');
+                            callback && (typeof callback === 'function') && callback();
+                    }, animateTime);
 
                 transform($el, offsetObj);
             }
