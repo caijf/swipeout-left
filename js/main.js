@@ -12,10 +12,10 @@ require.config({
 });
 
 
-require(['zepto', 'flip'], function($, Flip){
+require(['zepto', 'flip'], function($, xlip){
 
     // 测试 左滑删除1
-    window.test_flip_1 = new Flip({
+    window.test_flip_1 = new xlip({
         wrapper: '#test-flip1',
         itemSelector: 'li',
         transClass: 'li-inner',
@@ -25,7 +25,7 @@ require(['zepto', 'flip'], function($, Flip){
     });
 
     // 测试 左滑删除 2
-    window.test_flip_2 = new Flip({
+    window.test_flip_2 = new xlip({
         wrapper: '#test-flip2',
         itemSelector: 'li',
         transClass: 'li-inner',
@@ -35,7 +35,7 @@ require(['zepto', 'flip'], function($, Flip){
     });
 
     // 测试 左滑删除 3
-    window.test_flip_3 = new Flip({
+    window.test_flip_3 = new xlip({
         wrapper: '#test-flip3',
         itemSelector: 'li',
         transClass: 'li-inner',

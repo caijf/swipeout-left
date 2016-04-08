@@ -1,23 +1,31 @@
-/*
- * Flip ×ó»¬Ğ§¹û
+ï»¿/*
+ * Flip å·¦æ»‘æ•ˆæœ
  * By caijf
- * Ö§³Öamd£¬Èç²»Ê¹ÓÃamd£¬¿ÉÒÔÊ¹ÓÃÈ«¾Ö±äÁ¿Flip
+ * æ”¯æŒamdï¼Œå¦‚ä¸ä½¿ç”¨amdï¼Œå¯ä»¥ä½¿ç”¨å…¨å±€å˜é‡Flip
  *
  * Date: 2016/4/07
  */
-(function(){
+(function(root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else if (typeof exports === 'object') {
+        module.exports = factory;
+    } else {
+        root.Flip = factory();
+    }
+})(this, function() {
 
     /**
-     * ±ê×¼»¯Î»ÖÃĞÅÏ¢
-     * @param e ÊÂ¼ş¶ÔÏó
+     * æ ‡å‡†åŒ–ä½ç½®ä¿¡æ¯
+     * @param e äº‹ä»¶å¯¹è±¡
      * @returns {Object}
      */
-    function getStandEvent(e){
+    function getStandEvent(e) {
         var touches = e;
-        if(e.touches && e.touches.length){
+        if (e.touches && e.touches.length) {
             touches = e.touches[0];
         }
-        if(e.changedTouches && e.changedTouches.length){
+        if (e.changedTouches && e.changedTouches.length) {
             touches = e.changedTouches[0];
         }
         return $.extend({
@@ -25,42 +33,56 @@
                 x: touches.pageX,
                 y: touches.pageY
             }
-        },e);
+        }, e);
     }
 
-    //´¦ÀíÊÂ¼ş¼æÈİÎÊÌâ
-     var EVENT;
-     if ('ontouchstart' in window) {
-         EVENT = {
-             START: 'touchstart',
-             MOVE: 'touchmove',
-             END: 'touchend'
-         };
-     } else {
-         EVENT = {
-             START: 'mousedown',
-             MOVE: 'mousemove',
-             END: 'mouseup'
-         };
-     }
+    //å¤„ç†äº‹ä»¶å…¼å®¹é—®é¢˜
+    var EVENT;
+    if ('ontouchstart' in window) {
+        EVENT = {
+            START: 'touchstart',
+            MOVE: 'touchmove',
+            END: 'touchend'
+        };
+    } else {
+        EVENT = {
+            START: 'mousedown',
+            MOVE: 'mousemove',
+            END: 'mouseup'
+        };
+    }
 
-    var vendorPrefix = fxPrefix(), // CSS3 ÊôĞÔÇ°×º
-        transitionEnd = fxTransitionEnd(); // transitionEndÊÂ¼ş¼æÈİ
+    // CSS3 å±æ€§å‰ç¼€å…¼å®¹
+    // transitionEndäº‹ä»¶å…¼å®¹
+    var vendorPrefix,
+        fxTransform,
+        fxTransition,
+        transitionEnd = fxTransitionEnd();
+
+    vendorPrefix = getVendorPrefix();
+
+    if(vendorPrefix === ''){
+        fxTransform = 'transform';
+        fxTransition = 'transition';
+    }else{
+        fxTransform = vendorPrefix + 'Transform';
+        fxTransition = vendorPrefix + 'Transition';
+    }
 
     /**
-     * css ÊôĞÔÇ°×º¼æÈİ
+     * css å±æ€§å‰ç¼€å…¼å®¹
      * @return {String}
      */
-    function fxPrefix(){
+    function getVendorPrefix() {Â Â Â Â 
         var body = document.body || document.documentElement,
-            style=body.style,
-            vendor = ['Moz', 'Webkit', 'Khtml', 'O', 'ms'],
+            style = body.style,
+            vendor = ["Moz", "Webkit", "Khtml", "O", "ms"]
             i = 0,
             len = vendor.length;
 
-        while(i < len){
-            if(typeof style[vendor[i] + 'transition'] === 'string'){
-                return vendor[i];
+        while (i < len) {
+            if (typeof style[vendor[i] + 'Transition'] === "string") {
+                return '-' + vendor[i].toLowerCase() + '-';
             }
             i++;
         }
@@ -68,22 +90,22 @@
     }
 
     /**
-     * transitionEndÊÂ¼ş¼æÈİ
+     * transitionEndäº‹ä»¶å…¼å®¹
      * @return {[type]} [description]
      */
-    function fxTransitionEnd(){
+    function fxTransitionEnd() {
         var body = document.body || document.documentElement,
-            style=body.style,
+            style = body.style,
             transEndEventNames = {
-              WebkitTransition : 'webkitTransitionEnd',
-              MozTransition    : 'transitionend',
-              OTransition      : 'oTransitionEnd otransitionend',
-              transition       : 'transitionend'
+                WebkitTransition: 'webkitTransitionEnd',
+                MozTransition: 'transitionend',
+                OTransition: 'oTransitionEnd otransitionend',
+                transition: 'transitionend'
             },
             result = 'transition';
 
-        for(var name in transEndEventNames){
-            if(typeof style[name] === "string"){
+        for (var name in transEndEventNames) {
+            if (typeof style[name] === "string") {
                 return transEndEventNames[name];
             }
         }
@@ -91,45 +113,45 @@
         return 'transitionend';
     };
 
-     /**
-      * ×èÖ¹µã»÷ÊÂ¼şÖ´ĞĞ¡¢Ã°Åİ
-      * @param  {Object} $el Zepto»òjQuery dom¶ÔÏó
-      */
-     function preventClickFn($el){
-        $el && $el.on && $el.on('click', function click(e){
+    /**
+     * é˜»æ­¢ç‚¹å‡»äº‹ä»¶æ‰§è¡Œã€å†’æ³¡
+     * @param  {Object} $el Zeptoæˆ–jQuery domå¯¹è±¡
+     */
+    function preventClickFn($el) {
+        $el && $el.on && $el.on('click', function click(e) {
             e.stopPropagation();
             e.preventDefault();
             $el.off('click', click);
         })
-     }
+    }
 
-     /**
-      * @description ×ó»¬É¾³ı
-      * @param {Object} options
-      * @param {String | Object} options.wrapper ÊÂ¼şÎ¯ÍĞ¸¸¼¶£¬Ö§³ÖcssÑ¡ÔñÆ÷ »ò Zepto dom¶ÔÏó¡£Ä¬ÈÏ 'body'
-      * @param {String} options.itemSelector ²Ù×÷ÔªËØ£¬Ä¿Ç°½öÖ§³ÖcssÑ¡ÔñÆ÷¡£Ä¬ÈÏ 'li'
-      * @param {String} options.transClass Ö´ĞĞ¶¯»­µÄÔªËØµÄclassName£¬ÀıÈç£¬ÎÒÃÇ×÷ÓÃÔªËØÊÇli£¬Êµ¼Ê¶¯»­ÊÇÔÚ li>.li-inner¡£Ä¬ÈÏ 'li-inner'
-      * @param {String} options.actionClass ÓÒ²à²Ù×÷ÔªËØµÄclassName£¬ÀıÈç£¬ÓÒ²àÎÒÃÇ·ÅÖÃÁË²Ù×÷ÔªËØ li>.li-action¡£Ä¬ÈÏ 'li-action'
-      * @param {Boolean} options.dynamicLimit ¶¯Ì¬»ñÈ¡²Ù×÷ÇøÓòµÄ¿í¶È£¬ÉèÖÃÖ®ºóoptions.maxLimit¸ÄÎª¶¯Ì¬»ñÈ¡£¬²»Ó°Ïìoptions.toggleLimit¡¢options.overstepLimitÉèÖÃ¡£Ä¬ÈÏ false
-      * @param {Number} options.maxLimit ×ó»¬¾àÀë£¬Õı³£ÉèÖÃÎªÓÒ²à¿É²Ù×÷ÔªËØµÄ¿í¶È¡£Ä¬ÈÏ -80
-      * @param {Number} options.toggleLimit »¬³ö¾àÀë¶àÉÙÎª»¬³ö×´Ì¬¡£Ä¬ÈÏ options.maxLimit / 2
-      * @param {Number} options.overstepLimit ¿É³¬³ö¾àÀë¡£Ä¬ÈÏ options.maxLimit / 2
-      * @param {Boolean} options.preventClick ×èÖ¹µã»÷Ã°Åİ¡£Ä¬ÈÏ true
-      * @param {Number} options.animateTime »¬¶¯Ê±¼ä£¬µ¥Î»ms¡£Ä¬ÈÏ 300
-      * @param {Boolean} options.animateDecrease ¶¯Ì¬¼ÆËã¶¯»­Ö´ĞĞÊ±¼ä¡£ÈçÒÆ¶¯80pxĞèÒª200ms£¬ÄÇÃ´ÒÆ¶¯40px¾ÍÖ»Òª100ms
-      * @param {Function} options.disabledHandle ½ûÓÃÌõ¼şº¯Êı¡£
-      * @example
-      *     var messageFlip = new Flip();
-      *     
-      */
-    function Flip(options){
+    /**
+     * @description å·¦æ»‘åˆ é™¤
+     * @param {Object} options
+     * @param {String | Object} options.wrapper äº‹ä»¶å§”æ‰˜çˆ¶çº§ï¼Œæ”¯æŒcssé€‰æ‹©å™¨ æˆ– Zepto domå¯¹è±¡ã€‚é»˜è®¤ 'body'
+     * @param {String} options.itemSelector æ“ä½œå…ƒç´ ï¼Œç›®å‰ä»…æ”¯æŒcssé€‰æ‹©å™¨ã€‚é»˜è®¤ 'li'
+     * @param {String} options.transClass æ‰§è¡ŒåŠ¨ç”»çš„å…ƒç´ çš„classNameï¼Œä¾‹å¦‚ï¼Œæˆ‘ä»¬ä½œç”¨å…ƒç´ æ˜¯liï¼Œå®é™…åŠ¨ç”»æ˜¯åœ¨ li>.li-innerã€‚é»˜è®¤ 'li-inner'
+     * @param {String} options.actionClass å³ä¾§æ“ä½œå…ƒç´ çš„classNameï¼Œä¾‹å¦‚ï¼Œå³ä¾§æˆ‘ä»¬æ”¾ç½®äº†æ“ä½œå…ƒç´  li>.li-actionã€‚é»˜è®¤ 'li-action'
+     * @param {Boolean} options.dynamicLimit åŠ¨æ€è·å–æ“ä½œåŒºåŸŸçš„å®½åº¦ï¼Œè®¾ç½®ä¹‹åoptions.maxLimitæ”¹ä¸ºåŠ¨æ€è·å–ï¼Œä¸å½±å“options.toggleLimitã€options.overstepLimitè®¾ç½®ã€‚é»˜è®¤ false
+     * @param {Number} options.maxLimit å·¦æ»‘è·ç¦»ï¼Œæ­£å¸¸è®¾ç½®ä¸ºå³ä¾§å¯æ“ä½œå…ƒç´ çš„å®½åº¦ã€‚é»˜è®¤ -80
+     * @param {Number} options.toggleLimit æ»‘å‡ºè·ç¦»å¤šå°‘ä¸ºæ»‘å‡ºçŠ¶æ€ã€‚é»˜è®¤ options.maxLimit / 2
+     * @param {Number} options.overstepLimit å¯è¶…å‡ºè·ç¦»ã€‚é»˜è®¤ options.maxLimit / 2
+     * @param {Boolean} options.preventClick é˜»æ­¢ç‚¹å‡»å†’æ³¡ã€‚é»˜è®¤ true
+     * @param {Number} options.animateTime æ»‘åŠ¨æ—¶é—´ï¼Œå•ä½msã€‚é»˜è®¤ 300
+     * @param {Boolean} options.animateDecrease åŠ¨æ€è®¡ç®—åŠ¨ç”»æ‰§è¡Œæ—¶é—´ã€‚å¦‚ç§»åŠ¨80pxéœ€è¦200msï¼Œé‚£ä¹ˆç§»åŠ¨40pxå°±åªè¦100ms
+     * @param {Function} options.disabledHandle ç¦ç”¨æ¡ä»¶å‡½æ•°ã€‚
+     * @example
+     *     var messageFlip = new Flip();
+     *
+     */
+    function Flip(options) {
 
-        //È¥³ınew×Ö·û´®
+        //å»é™¤newå­—ç¬¦ä¸²
         if (!(this instanceof Flip)) return new Flip(options);
 
         var self = this;
 
-        // ²ÎÊı¸²¸Ç
+        // å‚æ•°è¦†ç›–
         var opt = $.extend({
             wrapper: 'body',
             itemSelector: 'li',
@@ -143,109 +165,115 @@
             disabledHandle: null
         }, options);
 
-        // »º´ædom
+        // ç¼“å­˜dom
         var $dom = $(document),
             $wrapper = $(opt.wrapper);
 
-        // ÊÇ·ñ¶¯Ì¬»ñÈ¡½çÏŞÖµ£¨²Ù×÷ÇøÓòµÄ¿í¶È£©
-        if(!options.dynamicLimit){
-            // Æ«ÒÆ½çÏŞÖµ
-            opt.maxLimit = (opt.maxLimit && typeof opt.maxLimit === 'number') ?  (opt.maxLimit > 0 ? -opt.maxLimit : opt.maxLimit) : -$wrapper.find(opt.itemSelector).eq(0).find('.' + opt.actionClass).width();
-            opt.toggleLimit = (opt.toggleLimit && typeof opt.toggleLimit === 'number') ?  (opt.toggleLimit > 0 ? -opt.toggleLimit : opt.toggleLimit) : opt.maxLimit / 2;
+        // æ˜¯å¦åŠ¨æ€è·å–ç•Œé™å€¼ï¼ˆæ“ä½œåŒºåŸŸçš„å®½åº¦ï¼‰
+        if (!options.dynamicLimit) {
+            // åç§»ç•Œé™å€¼
+            opt.maxLimit = (opt.maxLimit && typeof opt.maxLimit === 'number') ? (opt.maxLimit > 0 ? -opt.maxLimit : opt.maxLimit) : -$wrapper.find(opt.itemSelector).eq(0).find('.' + opt.actionClass).width();
+            opt.toggleLimit = (opt.toggleLimit && typeof opt.toggleLimit === 'number') ? (opt.toggleLimit > 0 ? -opt.toggleLimit : opt.toggleLimit) : opt.maxLimit / 2;
         }
 
-        // Æ«ÒÆ¿ÉÒÔ³¬³ö·¶Î§
-        opt.overstepLimit = (opt.overstepLimit && typeof opt.overstepLimit === 'number') ?  (opt.overstepLimit > 0 ? -opt.overstepLimit : opt.overstepLimit) : 0;
+        // åç§»å¯ä»¥è¶…å‡ºèŒƒå›´
+        opt.overstepLimit = (opt.overstepLimit && typeof opt.overstepLimit === 'number') ? (opt.overstepLimit > 0 ? -opt.overstepLimit : opt.overstepLimit) : 0;
 
-        // ÒÆ¶¯1pxĞèÒªµÄºÁÃëÊı
+        // ç§»åŠ¨1pxéœ€è¦çš„æ—¶é—´ï¼ˆä»¥æ¯«ç§’ä¸ºå•ä½)
         var MOVETIME_ONEPIXEL = Math.floor(Math.abs(opt.animateTime / opt.maxLimit));
 
-        var currentTarget = null, // µ±Ç°²Ù×÷µÄdom¶ÔÏó
-            transElement = null, // currentTargetÄÚ²¿»¬³ö¶¯»­µÄÔªËØ
+        var currentTarget = null, // å½“å‰æ“ä½œçš„domå¯¹è±¡
+            transElement = null, // currentTargetå†…éƒ¨æ»‘å‡ºåŠ¨ç”»çš„å…ƒç´ 
             origin = {
-                x: 0, // ¿ªÊ¼xÖá×ø±ê
-                y: 0 // ¿ªÊ¼yÖá×ø±ê
+                x: 0, // å¼€å§‹xè½´åæ ‡
+                y: 0 // å¼€å§‹yè½´åæ ‡
             },
-            dir = '', // ÅĞ¶Ïtouch·½Ïò£¬vÎª´¹Ö±£¬hÎªË®Æ½
-            startTime; // ¿ªÊ¼´¥·¢Ê±¼ä
+            dir = '', // åˆ¤æ–­touchæ–¹å‘ï¼Œvä¸ºå‚ç›´ï¼Œhä¸ºæ°´å¹³
+            startTime; // å¼€å§‹è§¦å‘æ—¶é—´
 
 
-        var isHideAnimate = false, // ±êÊ¶Òş²Ø¹ı¶É¶¯»­½øĞĞÖĞ£¬Òş²Ø¶¯»­²»ÄÜ´ò¶Ï
-            isRoll = false; // ±êÊ¶ÊÇ·ñ´æÔÚ»¬³ö×´Ì¬
+        var isHideAnimate = false, // æ ‡è¯†éšè—è¿‡æ¸¡åŠ¨ç”»è¿›è¡Œä¸­ï¼Œéšè—åŠ¨ç”»ä¸èƒ½æ‰“æ–­
+            isRoll = false; // æ ‡è¯†æ˜¯å¦å­˜åœ¨æ»‘å‡ºçŠ¶æ€
 
-        // °ó¶¨ÊÂ¼ş
+        // ç»‘å®šäº‹ä»¶
         $wrapper.on(EVENT.START, start);
 
-        // Òş²Ø»¬³ödom
-        function hideSlide(){
+        // éšè—æ»‘å‡ºdom
+        function hideSlide() {
 
-            // ·ÀÖ¹ÖØ¸´Òş²Ø¶¯»­
-            if(isHideAnimate) return;
+            // é˜²æ­¢é‡å¤éšè—åŠ¨ç”»
+            if (isHideAnimate) return;
 
-            // ±êÊ¶Òş²Ø¹ı¶É¶¯»­½øĞĞÖĞ
+            // æ ‡è¯†éšè—è¿‡æ¸¡åŠ¨ç”»è¿›è¡Œä¸­
             isHideAnimate = true;
 
             var animateTime = opt.animateTime;
 
-            // ¶¯»­Ê±¼ä¸ù¾İ¾àÀë¼ÆËã
-            if(opt.animateDecrease){
+            // åŠ¨ç”»æ—¶é—´æ ¹æ®è·ç¦»è®¡ç®—
+            if (opt.animateDecrease) {
                 animateTime = Math.floor(MOVETIME_ONEPIXEL * Math.abs(__moveX - offsetObj.x) * 2)
             }
 
-            // Ö´ĞĞÒş²Ø¶¯»­
-            slide(transElement, animateTime, {x: 0, y: 0}, function(){
+            // æ‰§è¡Œéšè—åŠ¨ç”»
+            slide(transElement, animateTime, {
+                x: 0,
+                y: 0
+            }, function() {
                 currentTarget = null;
                 isRoll = false;
                 isHideAnimate = false;
             });
         }
 
-        // ÏÔÊ¾»¬³ödom
-        function showSlide(){
+        // æ˜¾ç¤ºæ»‘å‡ºdom
+        function showSlide() {
 
-            // ·ÀÖ¹ÖØ¸´Òş²Ø¶¯»­
-            if(isHideAnimate) return;
+            // é˜²æ­¢é‡å¤éšè—åŠ¨ç”»
+            if (isHideAnimate) return;
 
-            // Ö´ĞĞ»¬³ö¶¯»­
-            slide(transElement, opt.animateTime, {x: opt.maxLimit, y: 0}, function(){
-                // ±êÊ¶´æÔÚ»¬³ö×´Ì¬
+            // æ‰§è¡Œæ»‘å‡ºåŠ¨ç”»
+            slide(transElement, opt.animateTime, {
+                x: opt.maxLimit,
+                y: 0
+            }, function() {
+                // æ ‡è¯†å­˜åœ¨æ»‘å‡ºçŠ¶æ€
                 isRoll = true;
             });
         }
 
         /**
-         * @description ÔªËØtransformÆ«ÒÆ
-         * @param  {Object} $el       Zepto»òjQuery dom¶ÔÏó
-         * @param  {Object} offsetObj Æ«ÒÆÖµ£¬xÖáºÍyÖá£¬ÀıÈç {x: 0, y: 0}
+         * @description å…ƒç´ transformåç§»
+         * @param  {Object} $el       Zeptoæˆ–jQuery domå¯¹è±¡
+         * @param  {Object} offsetObj åç§»å€¼ï¼Œxè½´å’Œyè½´ï¼Œä¾‹å¦‚ {x: 0, y: 0}
          */
-        function transform($el, offsetObj){
-            $el.css(vendorPrefix + 'transform', 'translate3D('+ offsetObj.x +'px,' + offsetObj.y + 'px, 0)')
+        function transform($el, offsetObj) {
+            $el.css(fxTransform, 'translate3D(' + offsetObj.x + 'px,' + offsetObj.y + 'px, 0)')
                 .attr('data-movex', offsetObj.x);
         }
 
         /**
-         * transition¶¯»­
-         * @param  {Object} $el           Zepto»òjQuery dom¶ÔÏó
-         * @param  {Number}   animateTime ¶¯»­Ö´ĞĞÊ±¼ä
-         * @param  {Object}   offsetObj   Æ«ÒÆÖµ£¬xÖáºÍyÖá£¬ÀıÈç {x: 0, y: 0}
-         * @param  {Function} callback    ¶¯»­Ö´ĞĞÍê»Øµ÷º¯Êı
+         * transitionåŠ¨ç”»
+         * @param  {Object} $el           Zeptoæˆ–jQuery domå¯¹è±¡
+         * @param  {Number}   animateTime åŠ¨ç”»æ‰§è¡Œæ—¶é—´
+         * @param  {Object}   offsetObj   åç§»å€¼ï¼Œxè½´å’Œyè½´ï¼Œä¾‹å¦‚ {x: 0, y: 0}
+         * @param  {Function} callback    åŠ¨ç”»æ‰§è¡Œå®Œå›è°ƒå‡½æ•°
          */
-        function slide($el, animateTime, offsetObj, callback){
+        function slide($el, animateTime, offsetObj, callback) {
 
-            var __moveX = $el.attr('data-movex') ? parseInt($el.attr('data-movex'), 10) : 0; // ÒÆ¶¯¾àÀë
+            var __moveX = $el.attr('data-movex') ? parseInt($el.attr('data-movex'), 10) : 0; // ç§»åŠ¨è·ç¦»
 
-            var __animateTime = Math.floor(MOVETIME_ONEPIXEL * Math.abs(__moveX - offsetObj.x) * 2); // ÒÆ¶¯Ê±¼ä
+            var __animateTime = Math.floor(MOVETIME_ONEPIXEL * Math.abs(__moveX - offsetObj.x) * 2); // ç§»åŠ¨æ—¶é—´
 
-            if(__moveX == offsetObj.x){
+            if (__moveX == offsetObj.x) {
                 callback && (typeof callback === 'function') && callback();
-            }else{
-                $el.css(vendorPrefix + 'transition', 'transform ' + (animateTime) + 'ms ease-out 0s')
+            } else {
+                $el.css(fxTransition, 'transform ' + (animateTime) + 'ms ease-out 0s')
                     .attr({
                         'data-translatex': offsetObj.x,
                         'data-movex': offsetObj.x
                     })
-                    .one(transitionEnd, function(){
-                        $el.css(vendorPrefix + 'transition', '');
+                    .one(transitionEnd, function() {
+                        $el.css(fxTransition, '');
                         callback && (typeof callback === 'function') && callback();
                     });
 
@@ -254,11 +282,11 @@
         }
 
         /**
-         * ¿ªÊ¼ÒÆ¶¯Ê±´¥·¢
-         * @param  {Object} e ÊÂ¼ş¶ÔÏó
+         * å¼€å§‹ç§»åŠ¨æ—¶è§¦å‘
+         * @param  {Object} e äº‹ä»¶å¯¹è±¡
          */
-        function start(e){
-            if(opt.disabledHandle && typeof opt.disabledHandle === 'function' && opt.disabledHandle()){
+        function start(e) {
+            if (opt.disabledHandle && typeof opt.disabledHandle === 'function' && opt.disabledHandle()) {
                 return;
             }
 
@@ -270,35 +298,35 @@
 
             var $target = $(e.target).parents(opt.itemSelector);
 
-            // ³õÊ¼»¯
+            // åˆå§‹åŒ–
             dir = '';
 
-            // ´æÔÚ»¬³ö×´Ì¬
-            if(currentTarget && currentTarget.length > 0){
-                // Èç¹û´¥ÃşµÄ²»ÊÇÉ¾³ı£¬ÒÆ³ıµ±Ç°×´Ì¬
-                if($(e.target).hasClass(opt.actionClass) || $(e.target).parents('.' + opt.actionClass).length > 0){
+            // å­˜åœ¨æ»‘å‡ºçŠ¶æ€
+            if (currentTarget && currentTarget.length > 0) {
+                // å¦‚æœè§¦æ‘¸çš„ä¸æ˜¯åˆ é™¤ï¼Œç§»é™¤å½“å‰çŠ¶æ€
+                if ($(e.target).hasClass(opt.actionClass) || $(e.target).parents('.' + opt.actionClass).length > 0) {
                     preventClickFn($target);
-                }else{
+                } else {
                     preventClickFn($target);
 
-                    // ×èÖ¹Ä¬ÈÏĞĞÎª£¨¹ö¶¯£©
+                    // é˜»æ­¢é»˜è®¤è¡Œä¸ºï¼ˆæ»šåŠ¨ï¼‰
                     e.preventDefault();
 
-                    // Òş²Ø»¬³öÔªËØ
+                    // éšè—æ»‘å‡ºå…ƒç´ 
                     hideSlide();
 
                     return;
                 }
             }
 
-            if($target.length <= 0) return;
+            if ($target.length <= 0) return;
 
             currentTarget = $target;
             transElement = currentTarget.find('.' + opt.transClass);
 
-            // ÊÇ·ñ¶¯Ì¬»ñÈ¡½çÏŞÖµ£¨²Ù×÷ÇøÓòµÄ¿í¶È£©
-            if(options.dynamicLimit){
-                // Æ«ÒÆ½çÏŞÖµ
+            // æ˜¯å¦åŠ¨æ€è·å–ç•Œé™å€¼ï¼ˆæ“ä½œåŒºåŸŸçš„å®½åº¦ï¼‰
+            if (options.dynamicLimit) {
+                // åç§»ç•Œé™å€¼
                 opt.maxLimit = -currentTarget.find('.' + opt.actionClass).width();
                 opt.toggleLimit = opt.maxLimit / 2;
             }
@@ -308,10 +336,10 @@
         }
 
         /**
-         * ÕıÔÚÒÆ¶¯Ê±´¥·¢
-         * @param  {Object} e ÊÂ¼ş¶ÔÏó
+         * æ­£åœ¨ç§»åŠ¨æ—¶è§¦å‘
+         * @param  {Object} e äº‹ä»¶å¯¹è±¡
          */
-        function move(e){
+        function move(e) {
             if (!currentTarget || !transElement) return;
 
             var evt = getStandEvent(e),
@@ -321,34 +349,37 @@
                 absDistX = Math.abs(moveX),
                 absDistY = Math.abs(moveY);
 
-            // È¡µãÅĞ¶Ï·½Ïò
-            if(!dir){
-                if(absDistX >= absDistY){
+            // å–ç‚¹åˆ¤æ–­æ–¹å‘
+            if (!dir) {
+                if (absDistX >= absDistY) {
                     dir = 'h';
-                }else{
+                } else {
                     dir = 'v';
                 }
             }
 
-            // Ë®Æ½»¬¶¯´¦Àí
-            if(dir === 'h'){
+            // æ°´å¹³æ»‘åŠ¨å¤„ç†
+            if (dir === 'h') {
 
-                // ¸úËæÒÆ¶¯
+                // è·Ÿéšç§»åŠ¨
                 tranX = parseInt(transElement.attr('data-translatex'), 10) || 0;
                 tranX += moveX;
 
-                // ±ß½çÖµÏŞ¶¨
-                if(tranX < (opt.maxLimit + opt.overstepLimit)){
+                // è¾¹ç•Œå€¼é™å®š
+                if (tranX < (opt.maxLimit + opt.overstepLimit)) {
                     tranX = opt.maxLimit + opt.overstepLimit;
-                }else if(tranX > -opt.overstepLimit){
+                } else if (tranX > -opt.overstepLimit) {
                     tranX = -opt.overstepLimit;
                 }
 
-                transform(transElement, {x: tranX, y: 0});
+                transform(transElement, {
+                    x: tranX,
+                    y: 0
+                });
 
-                // ×èÖ¹Ä¬ÈÏÊÂ¼ş
+                // é˜»æ­¢é»˜è®¤äº‹ä»¶
                 e.preventDefault();
-            }else{
+            } else {
                 $dom.off(EVENT.MOVE, move);
                 $dom.off(EVENT.END, end);
 
@@ -357,10 +388,10 @@
         }
 
         /**
-         * ÒÆ¶¯½áÊøÊ±´¥·¢
-         * @param  {Object} e ÊÂ¼ş¶ÔÏó
+         * ç§»åŠ¨ç»“æŸæ—¶è§¦å‘
+         * @param  {Object} e äº‹ä»¶å¯¹è±¡
          */
-        function end(e){
+        function end(e) {
             if (!currentTarget || !transElement) return;
 
             var evt = getStandEvent(e),
@@ -371,20 +402,20 @@
             tranX = parseInt(transElement.attr('data-translatex'), 10) || 0;
             tranX += moveX;
 
-            // »¬¶¯
-            if(tranX < opt.toggleLimit){
+            // æ»‘åŠ¨
+            if (tranX < opt.toggleLimit) {
                 showSlide();
-            }else{
+            } else {
                 hideSlide();
             }
 
-            //Êó±ê°´ÏÂÊÂ¼ş£¨´¦ÀíPC¶ËÖĞ£©
-            if(opt.preventClick && EVENT.START === 'mousedown' && ((startTime && endTime - startTime > 300) || (dir ==='h' && Math.abs(moveX) > 3))) {
+            //é¼ æ ‡æŒ‰ä¸‹äº‹ä»¶ï¼ˆå¤„ç†PCç«¯ä¸­ï¼‰
+            if (opt.preventClick && EVENT.START === 'mousedown' && ((startTime && endTime - startTime > 300) || (dir === 'h' && Math.abs(moveX) > 3))) {
                 preventClickFn(currentTarget);
                 startTime = null;
             }
 
-            // ×èÖ¹Ä¬ÈÏĞĞÎª
+            // é˜»æ­¢é»˜è®¤è¡Œä¸º
             // e.preventDefault();
 
             $(document).off(EVENT.MOVE, move);
@@ -392,35 +423,30 @@
         }
 
         /**
-         * @method destroy Ïú»Ùº¯Êı
+         * @method destroy é”€æ¯å‡½æ•°
          */
-        this.destroy = function(){
+        this.destroy = function() {
             $wrapper.off(EVENT.START);
             self.reset();
         }
 
         /**
-         * @method reset ÖØÖÃ»¬³ö×´Ì¬
+         * @method reset é‡ç½®æ»‘å‡ºçŠ¶æ€
          */
-        this.reset = function(){
-            if(currentTarget){
+        this.reset = function() {
+            if (currentTarget) {
                 hideSlide();
             }
         }
 
         /**
-         * @method hasRollState ÊÇ·ñÓĞ»¬³ö×´Ì¬
+         * @method hasRollState æ˜¯å¦æœ‰æ»‘å‡ºçŠ¶æ€
          */
-        this.hasRollState = function(){
+        this.hasRollState = function() {
             return isRoll;
         }
     }
 
+    return Flip;
 
-    if ( typeof define === "function" && define.amd ) {
-        define( "flip", [], function () { return Flip; } );
-    }else{
-        window.Flip = Flip;
-    }
-
-})();
+});
