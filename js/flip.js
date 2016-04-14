@@ -287,17 +287,22 @@
                     'data-movex': offsetX
                 });
 
+            var closeTo;
             if(fxTransitionEnd){
                 $el.one(fxTransitionEnd, function() {
+                    clearTimeout(closeTo);
                     $el.css(fxTransition, '');
                     callback && (typeof callback === 'function') && callback();
                 });
-            }else{
-                setTimeout(function(){
-                    $el.css(fxTransition, '');
-                    callback && (typeof callback === 'function') && callback();
-                }, animateTime);
             }
+
+            // 兼容不触发
+            closeTo = setTimeout(function(){
+
+                $el.css(fxTransition, '');
+                callback && (typeof callback === 'function') && callback();
+
+            }, animateTime+200);
 
             transform($el, offsetX);
         }
