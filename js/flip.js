@@ -53,7 +53,7 @@
     function getVendorPrefix() {    
         var body = document.body || document.documentElement,
             style = body.style,
-            vendor = ["Moz", "Webkit", "Khtml", "O", "ms"]
+            vendor = ["Moz", "Webkit", "Khtml", "O", "ms"],
             i = 0,
             len = vendor.length;
 
@@ -126,7 +126,8 @@
         // 偏移可以超出范围
         opt.overstepLimit = (opt.overstepLimit && typeof opt.overstepLimit === 'number') ? (opt.overstepLimit > 0 ? -opt.overstepLimit : opt.overstepLimit) : 0;
 
-        var swipeoutOpenedEl, // 当前滑出元素
+        var allowSwipeout = true, // 允许滑动，作用于滑动收起时，防止重复触发
+            swipeoutOpenedEl, // 当前滑出元素
             swipeoutEl, // 当前操作dom
             swipeoutContent, // 滑动元素
             swipeoutAction, // 操作区域
@@ -160,11 +161,15 @@
                 return;
             }
 
+            // 滑动收起时，禁止再触发
+            if(!allowSwipeout) return;
+
             var $target = $(e.target);
 
             // 存在滑出元素，并且不处于操作区域，隐藏滑出元素
-            if (swipeoutOpenedEl && swipeoutOpenedEl != $(this) && $target.parents('.' + opt.swipeoutActionClass).length === 0) {
-                swipeoutClose();
+            // if (swipeoutOpenedEl && swipeoutOpenedEl != $(this) && $target.parents('.' + opt.swipeoutActionClass).length === 0) {
+            if (swipeoutOpenedEl && $target.parents('.' + opt.swipeoutActionClass).length === 0) {
+                swipeoutClose(swipeoutContent);
                 e.preventDefault();
                 return;
             }
@@ -245,14 +250,16 @@
             ) {
                 swipeoutOpen();
             }else{
-                swipeoutClose();
+                swipeoutClose(swipeoutContent);
             }
         }
 
         // 隐藏滑出dom
-        function swipeoutClose() {
-            slide(swipeoutContent, opt.animateTime, 0, function(){
+        function swipeoutClose($el) {
+            allowSwipeout = false;
+            slide($el, opt.animateTime, 0, function(){
                 swipeoutOpenedEl = undefined;
+                allowSwipeout = true;
             });
         }
 
@@ -288,21 +295,19 @@
                 });
 
             var closeTo;
+
+            function onTransitionEnd(){
+                clearTimeout(closeTo);
+                $el.css(fxTransition, '');
+                callback && (typeof callback === 'function') && callback();
+            }
+
             if(fxTransitionEnd){
-                $el.one(fxTransitionEnd, function() {
-                    clearTimeout(closeTo);
-                    $el.css(fxTransition, '');
-                    callback && (typeof callback === 'function') && callback();
-                });
+                $el.one(fxTransitionEnd, onTransitionEnd);
             }
 
             // 兼容不触发
-            closeTo = setTimeout(function(){
-
-                $el.css(fxTransition, '');
-                callback && (typeof callback === 'function') && callback();
-
-            }, animateTime+200);
+            closeTo = setTimeout(onTransitionEnd, animateTime+200);
 
             transform($el, offsetX);
         }
