@@ -45,39 +45,24 @@ require(['zepto', 'flip'], function($, xlip){
         disabledHandle: disabledHandle
     });
 
-    // li子元素的事件，不能在li父节点去委托，在滑动中冒泡被阻止
-    // $('#test-flip').on('click', function(e){
-
-    //     var $target = $(e.target);
-
-    //     if($target.hasClass('attention') || $target.parents('.attention').length > 0){
-    //         e.preventDefault();
-    //         console.log('click attention');
-    //     }else if($target.hasClass('delete') || $target.parents('.delete').length > 0){
-    //         e.preventDefault();
-    //         console.log('click delete');
-    //     }else{
-    //         console.log('click li');
-    //     }
-    // });
-
 
     $('.attention').on('click', function(e){
-        console.log('click attention');
+        // console.log('click attention');
     });
 
     $('.delete').on('click', function(e){
-        console.log('click delete');
+        // console.log('click delete');
     });
 
     $('body').on('click', 'li', function(e){
-        console.log('click li');
+        // console.log('click li');
     })
 
     $(window).on('resize', function(e){
         if($(document).width() > 768){
             test_flip_1.reset();
             test_flip_2.reset();
+            test_flip_3.reset();
         }
     });
 

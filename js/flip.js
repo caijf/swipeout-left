@@ -34,23 +34,15 @@
     // CSS3 属性前缀兼容
     // transitionEnd事件兼容
     var vendorPrefix = getVendorPrefix(),
-        fxTransform,
-        fxTransition,
+        fxTransform = vendorPrefix + 'transform',
+        fxTransition = vendorPrefix + 'transition',
         fxTransitionEnd = handlerTransitionEnd();
-
-    if(vendorPrefix === ''){
-        fxTransform = 'transform';
-        fxTransition = 'transition';
-    }else{
-        fxTransform = vendorPrefix + 'Transform';
-        fxTransition = vendorPrefix + 'Transition';
-    }
 
     /**
      * css 属性前缀兼容
      * @return {String}
      */
-    function getVendorPrefix() {    
+    function getVendorPrefix() {
         var body = document.body || document.documentElement,
             style = body.style,
             vendor = ["Moz", "Webkit", "Khtml", "O", "ms"],
@@ -123,7 +115,7 @@
             disabledHandle: null
         }, options);
 
-        // 偏移可以超出范围
+        // 偏移可超出范围
         opt.overstepLimit = (opt.overstepLimit && typeof opt.overstepLimit === 'number') ? (opt.overstepLimit > 0 ? -opt.overstepLimit : opt.overstepLimit) : 0;
 
         var allowSwipeout = true, // 允许滑动，作用于滑动收起时，防止重复触发
@@ -167,9 +159,8 @@
             var $target = $(e.target);
 
             // 存在滑出元素，并且不处于操作区域，隐藏滑出元素
-            // if (swipeoutOpenedEl && swipeoutOpenedEl != $(this) && $target.parents('.' + opt.swipeoutActionClass).length === 0) {
-            if (swipeoutOpenedEl && $target.parents('.' + opt.swipeoutActionClass).length === 0) {
-                swipeoutClose(swipeoutContent);
+            if (swipeoutOpenedEl && $target.parents('.' + opt.swipeoutActionClass).length <= 0) {
+                swipeoutClose();
                 e.preventDefault();
                 return;
             }
@@ -244,29 +235,35 @@
             isMove = false;
             var timeDiff = (new Date()).getTime() - touchesStartTime;
 
+            // 阻止再次左滑
+            allowSwipeout = false;
+
             if (
                 timeDiff < 300 && touchesDiff < -10 ||
                 timeDiff >= 300 && Math.abs(translate) > swipeoutActionWidth / 2
             ) {
                 swipeoutOpen();
             }else{
-                swipeoutClose(swipeoutContent);
+                swipeoutClose();
             }
         }
 
         // 隐藏滑出dom
-        function swipeoutClose($el) {
-            allowSwipeout = false;
-            slide($el, opt.animateTime, 0, function(){
+        function swipeoutClose(callback) {
+            slide(swipeoutContent, opt.animateTime, 0, function(){
                 swipeoutOpenedEl = undefined;
                 allowSwipeout = true;
+                callback && (typeof callback === 'function') && callback();
             });
         }
 
         // 显示滑出dom
         function swipeoutOpen(callback) {
-            swipeoutOpenedEl = swipeoutEl;
-            slide(swipeoutContent, opt.animateTime, opt.maxLimit, callback);
+            slide(swipeoutContent, opt.animateTime, opt.maxLimit, function(){
+                swipeoutOpenedEl = swipeoutEl;
+                allowSwipeout = true;
+                callback && (typeof callback === 'function') && callback();
+            });
         }
 
         /**
@@ -324,20 +321,13 @@
         }
 
         /**
-         * @method swipeoutClose 重置滑出状态
+         * @method reset 重置滑出状态
          */
-        // this.swipeoutClose = function() {
-        //     if (isOpen) {
-        //         swipeoutClose();
-        //     }
-        // }
-
-        /**
-         * @method init 初始化
-         */
-        // this.init = function() {
-        //     self.wrapper.on(EVENT.START, start);
-        // }
+        this.reset = function() {
+            if(swipeoutOpenedEl){
+                swipeoutClose();
+            }
+        }
     }
 
     return Swipeout;
