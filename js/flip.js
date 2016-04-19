@@ -84,6 +84,39 @@
     };
 
     /**
+     * @description 元素transform偏移
+     * @param  {Object} $el       Zepto或jQuery dom对象
+     * @param  {Number} offsetX 偏移值，x轴
+     */
+    function transform($el, offsetX) {
+        $el.css(fxTransform, 'translate3d(' + offsetX + 'px, 0, 0)')
+            .attr('data-movex', offsetX);
+    }
+
+    /**
+     * [transitionEnd description]
+     * @param  {Function} callback [description]
+     * @return {[type]}            [description]
+     */
+    function transitionEnd($el, callback) {
+        var events = ['webkitTransitionEnd', 'transitionend', 'oTransitionEnd', 'MSTransitionEnd', 'msTransitionEnd'],
+            i, j;
+        function fireCallBack(e) {
+            callback && typeof callback === 'function' && callback();
+
+            for (i = 0; i < events.length; i++) {
+                $el.off(events[i], fireCallBack);
+            }
+        }
+        if (callback) {
+            for (i = 0; i < events.length; i++) {
+                $el.on(events[i], fireCallBack);
+            }
+        }
+        return $el;
+    }
+
+    /**
      * @description 左滑删除
      * @param {Object} options
      * @param {String | Object} options.wrapper 事件委托父级，支持css选择器 或 Zepto dom对象。默认 'body'
@@ -143,7 +176,6 @@
             .on(EVENT.START, start)
             .on(EVENT.MOVE, move)
             .on(EVENT.END, end);
-
         /**
          * 开始移动时触发
          * @param  {Object} e 事件对象
@@ -217,6 +249,10 @@
                 translate = -opt.overstepLimit;
             }
 
+            if(swipeoutContent.css(fxTransition)){
+                swipeoutContent.css(fxTransition, "");
+            }
+
             transform(swipeoutContent, translate);
         }
 
@@ -235,9 +271,6 @@
             isMove = false;
             var timeDiff = (new Date()).getTime() - touchesStartTime;
 
-            // 阻止再次左滑
-            allowSwipeout = false;
-
             if (
                 timeDiff < 300 && touchesDiff < -10 ||
                 timeDiff >= 300 && Math.abs(translate) > swipeoutActionWidth / 2
@@ -249,33 +282,30 @@
         }
 
         // 隐藏滑出dom
-        function swipeoutClose(callback) {
+        function swipeoutClose() {
+            // 阻止再次左滑
+            allowSwipeout = false;
+
             slide(swipeoutContent, opt.animateTime, 0, function(){
-                swipeoutOpenedEl = undefined;
                 allowSwipeout = true;
-                callback && (typeof callback === 'function') && callback();
             });
+
+            if(swipeoutOpenedEl){
+                swipeoutOpenedEl = undefined;
+            }
         }
 
         // 显示滑出dom
-        function swipeoutOpen(callback) {
+        function swipeoutOpen() {
             slide(swipeoutContent, opt.animateTime, opt.maxLimit, function(){
-                swipeoutOpenedEl = swipeoutEl;
                 allowSwipeout = true;
-                callback && (typeof callback === 'function') && callback();
             });
+
+            swipeoutOpenedEl = swipeoutEl;
         }
 
-        /**
-         * @description 元素transform偏移
-         * @param  {Object} $el       Zepto或jQuery dom对象
-         * @param  {Number} offsetX 偏移值，x轴
-         */
-        function transform($el, offsetX) {
-            $el.css(fxTransform, 'translate3d(' + offsetX + 'px, 0, 0)')
-                .attr('data-movex', offsetX);
-        }
-
+var closeTo;
+var isHasTransitionEnd = false;
         /**
          * transition动画
          * @param  {Object} $el           Zepto或jQuery dom对象
@@ -291,20 +321,33 @@
                     'data-movex': offsetX
                 });
 
-            var closeTo;
-
             function onTransitionEnd(){
-                clearTimeout(closeTo);
+                if(closeTo){
+                    clearTimeout(closeTo);
+                }
+
+                isHasTransitionEnd = false;
+
                 $el.css(fxTransition, '');
+
                 callback && (typeof callback === 'function') && callback();
             }
 
-            if(fxTransitionEnd){
-                $el.one(fxTransitionEnd, onTransitionEnd);
+            // 防止重复注册 transitionEnd 回调
+            if(!isHasTransitionEnd){
+                isHasTransitionEnd = true;
+                transitionEnd($el, function(){
+                    onTransitionEnd();
+                });
             }
 
-            // 兼容不触发
-            closeTo = setTimeout(onTransitionEnd, animateTime+200);
+            // 兼容不触发，再延迟200ms执行回调
+            if(closeTo){
+                clearTimeout(closeTo);
+            }
+            closeTo = setTimeout(function(){
+                onTransitionEnd();
+            }, animateTime+200);
 
             transform($el, offsetX);
         }
@@ -321,9 +364,18 @@
         }
 
         /**
-         * @method reset 重置滑出状态
+         * @method close 重置滑出状态
          */
-        this.reset = function() {
+        this.close = function() {
+            if(swipeoutOpenedEl){
+                swipeoutClose();
+            }
+        }
+
+        /**
+         * @method close 重置滑出状态
+         */
+        this.refresh = function(opt) {
             if(swipeoutOpenedEl){
                 swipeoutClose();
             }
