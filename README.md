@@ -1,8 +1,3 @@
-# flip
-左滑删除
+# Swipeout 左滑删除
 
-
-- li子元素的事件，不能在li父节点去委托，在滑动中冒泡被阻止
-- li元素的事件需要通过父级做事件委托
-- android下，qq浏览器不执行动画，uc浏览器不执行滑出
-- ios下，safari无法委托到li事件（尝试去掉阻止冒泡）
+支持amd、node、全局Swipeout构造函数

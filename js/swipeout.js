@@ -1,5 +1,5 @@
 /*
- * Swipeout 左滑效果
+ * Swipeout 左滑删除效果
  * By caijf
  * 支持amd，如不使用amd，可以使用全局变量Swipeout
  *
@@ -35,8 +35,7 @@
     // transitionEnd事件兼容
     var vendorPrefix = getVendorPrefix(),
         fxTransform = vendorPrefix + 'transform',
-        fxTransition = vendorPrefix + 'transition',
-        fxTransitionEnd = handlerTransitionEnd();
+        fxTransition = vendorPrefix + 'transition';
 
     /**
      * css 属性前缀兼容
@@ -57,31 +56,6 @@
         }
         return '';
     }
-
-    /**
-     * transitionEnd事件兼容
-     * @return {[type]} [description]
-     */
-    function handlerTransitionEnd() {
-        var body = document.body || document.documentElement,
-            style = body.style,
-            transEndEventNames = {
-                WebkitTransition: 'webkitTransitionEnd',
-                MozTransition: 'transitionend',
-                OTransition: 'oTransitionEnd otransitionend',
-                transition: 'transitionend'
-            },
-            i = 0,
-            len = transEndEventNames.length;
-
-        for (var name in transEndEventNames) {
-            if (typeof style[name] === "string") {
-                return transEndEventNames[name];
-            }
-        }
-
-        return false;
-    };
 
     /**
      * @description 元素transform偏移
@@ -116,6 +90,55 @@
         return $el;
     }
 
+    var closeTo;
+    var isHasTransitionEnd = false;
+
+    /**
+     * transition动画
+     * @param  {Object} $el           Zepto或jQuery dom对象
+     * @param  {Number}   animateTime 动画执行时间
+     * @param  {Number}   offsetX   偏移值，x轴
+     * @param  {Function} callback    动画执行完回调函数
+     */
+    function slide($el, animateTime, offsetX, callback) {
+
+        $el.css(fxTransition, 'transform ' + animateTime + 'ms ease-out 0s')
+            .attr({
+                'data-translatex': offsetX,
+                'data-movex': offsetX
+            });
+
+        function onTransitionEnd(){
+            if(closeTo){
+                clearTimeout(closeTo);
+            }
+
+            isHasTransitionEnd = false;
+
+            $el.css(fxTransition, '');
+
+            callback && (typeof callback === 'function') && callback();
+        }
+
+        // 防止重复注册 transitionEnd 回调
+        if(!isHasTransitionEnd){
+            isHasTransitionEnd = true;
+            transitionEnd($el, function(){
+                onTransitionEnd();
+            });
+        }
+
+        // 兼容不触发，再延迟200ms执行回调
+        if(closeTo){
+            clearTimeout(closeTo);
+        }
+        closeTo = setTimeout(function(){
+            onTransitionEnd();
+        }, animateTime+200);
+
+        transform($el, offsetX);
+    }
+
     /**
      * @description 左滑删除
      * @param {Object} options
@@ -127,7 +150,7 @@
      * @param {Number} options.animateTime 滑动时间，单位ms。默认 300
      * @param {Function} options.disabledHandle 禁用条件函数
      * @example
-     *     var messageSwipeout = new Swipeout();
+     *     var listSwipeout = new Swipeout();
      *
      */
     function Swipeout(options) {
@@ -271,9 +294,16 @@
             isMove = false;
             var timeDiff = (new Date()).getTime() - touchesStartTime;
 
+            // 处理点击
+            if (timeDiff < 300 && touchesDiff === 0) {
+                return;
+            }
+
+            // 处理开启或关闭
             if (
                 timeDiff < 300 && touchesDiff < -10 ||
-                timeDiff >= 300 && Math.abs(translate) > swipeoutActionWidth / 2
+                (swipeoutOpenedEl && timeDiff < 300 && touchesDiff < 10) ||
+                timeDiff >= 300 && Math.abs(translate) > swipeoutActionWidth / 2 
             ) {
                 swipeoutOpen();
             }else{
@@ -304,54 +334,6 @@
             swipeoutOpenedEl = swipeoutEl;
         }
 
-var closeTo;
-var isHasTransitionEnd = false;
-        /**
-         * transition动画
-         * @param  {Object} $el           Zepto或jQuery dom对象
-         * @param  {Number}   animateTime 动画执行时间
-         * @param  {Number}   offsetX   偏移值，x轴
-         * @param  {Function} callback    动画执行完回调函数
-         */
-        function slide($el, animateTime, offsetX, callback) {
-
-            $el.css(fxTransition, 'transform ' + animateTime + 'ms ease-out 0s')
-                .attr({
-                    'data-translatex': offsetX,
-                    'data-movex': offsetX
-                });
-
-            function onTransitionEnd(){
-                if(closeTo){
-                    clearTimeout(closeTo);
-                }
-
-                isHasTransitionEnd = false;
-
-                $el.css(fxTransition, '');
-
-                callback && (typeof callback === 'function') && callback();
-            }
-
-            // 防止重复注册 transitionEnd 回调
-            if(!isHasTransitionEnd){
-                isHasTransitionEnd = true;
-                transitionEnd($el, function(){
-                    onTransitionEnd();
-                });
-            }
-
-            // 兼容不触发，再延迟200ms执行回调
-            if(closeTo){
-                clearTimeout(closeTo);
-            }
-            closeTo = setTimeout(function(){
-                onTransitionEnd();
-            }, animateTime+200);
-
-            transform($el, offsetX);
-        }
-
         /**
          * @method destroy 销毁函数
          */
@@ -379,6 +361,13 @@ var isHasTransitionEnd = false;
             if(swipeoutOpenedEl){
                 swipeoutClose();
             }
+        }
+
+        /**
+         * @method 获取滑出元素
+         */
+        this.getOpenedEl = function(){
+            return swipeoutOpenedEl ? swipeoutOpenedEl : null;
         }
     }
 
